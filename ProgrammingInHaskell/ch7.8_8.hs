@@ -33,7 +33,7 @@ parity :: [Bit] -> Bit
 parity = foldl (\x y -> (x + y) `mod` 2) 0
 
 addParity :: [Bit] -> [Bit]
-addParity bits = bits ++ (parity bits):[]
+addParity bits = bits ++ [parity bits]
 
 rmParity :: [Bit] -> [Bit]
 rmParity bits = if parity (take (length bits -1) bits) == last bits then take (length bits -1) bits else error ("parity error :" ++ show bits)
@@ -73,4 +73,4 @@ main = do
     print $ transmit' "higher-order functions are easy"
     print $ channel' [1,0,0,0,0,1,1,0,1,0,1,0,0,0,1,1,0,1,1,1,0,0,0,1,1,0,0]
     -- excercise 9
-    print $ transmit'' "higher-order functions are easy"
+    print $ transmit'' "higher-order functions are easy" -- parity error
