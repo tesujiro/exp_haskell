@@ -12,10 +12,11 @@ readLine :: IO String
 readLine = do x <- getChar
               case x of
                 '\n'   -> return []
-                --'\DEL' -> do putStr "\DEL xxxxx"
-                'D' -> do putStr "\ESC[1D xxxxx"
-                          xs <- readLine
-                          return (x:xs)
+                --'D' -> do putStr "\ESC[1D xxxxx"
+                '\DEL' -> do putStr "\ESC[1D 12345\ESC[1D"
+                --'\DEL' -> do putStr "xxx"
+                             xs <- readLine
+                             return (x:xs)
                 _ -> do xs <- readLine
                         return (x:xs)
 
