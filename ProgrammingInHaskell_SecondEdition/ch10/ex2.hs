@@ -17,10 +17,8 @@ putBoard [a,b,c,d,e] = do putRow 1 a
 
 putBoardHelper :: Int -> Board -> IO ()
 putBoardHelper _ [] = return ()
-putBoardHelper n (x:xs) = do putStr (show n)
-                             putStr ": "
-                             putStrLn (concat (replicate x "* "))
-                             putBoardHelper (n + 1) xs
+putBoardHelper n (x:xs) = do putRow n x
+                             putBoardHelper (n+1) xs
 
 putBoard' :: Board -> IO ()
 putBoard' = putBoardHelper 1
