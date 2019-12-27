@@ -1,5 +1,7 @@
+import System.IO
+
 adder :: IO ()
-adder = do putStrLn "How many numbers? "
+adder = do putStr "How many numbers? " >> hFlush stdout
            str <- getLine
            let n = (read str)::Int
            t <- adder' 0 n
@@ -12,4 +14,5 @@ adder' t n = do str <- getLine
                 adder' (t + x) (n-1)
 
 main = do
+    --hSetBuffering stdout NoBuffering
     adder
