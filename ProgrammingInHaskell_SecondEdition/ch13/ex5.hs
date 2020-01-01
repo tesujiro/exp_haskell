@@ -207,3 +207,4 @@ main = do
     print $ parse nats "[ 1, 2, 3 ]"
     print $ eval "1+2*3+4"
     print $ parse expr' "1+2"
+    print $ comp "1+2*5+(3+2)"
