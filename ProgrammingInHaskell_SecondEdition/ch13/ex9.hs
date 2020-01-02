@@ -246,8 +246,10 @@ delete xs = calc (init xs)
 eval :: String -> IO ()
 eval xs = case parse expr' xs of
             [(n, "")] -> calc (show n)
-            _ -> do beep
-                    calc xs
+            --_ -> do beep
+            --        calc xs
+            [(_,out)] -> calc (take ((length xs) - (length out)) xs)
+            _ -> calc xs
 
 clear :: IO ()
 clear = calc ""
@@ -292,4 +294,5 @@ factor' = do symbol "("
 
 main = do
      hSetBuffering stdout NoBuffering
+     hSetBuffering stdin  NoBuffering
      run
