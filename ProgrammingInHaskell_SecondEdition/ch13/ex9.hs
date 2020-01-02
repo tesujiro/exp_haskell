@@ -2,6 +2,32 @@
 
 import Control.Applicative
 import Data.Char
+import System.IO
+
+-- Chapter 8 
+cls :: IO ()
+cls = putStr "\ESC[2J"
+
+type Pos = (Int,Int)
+
+-- Chapter 10.7
+{-
+getCh :: IO Char
+getCh = do -- hSetEcho stdin False
+           x <- getChar
+           -- hSetEcho stdin True
+           return x
+-}
+
+-- Chapter 10.8.1 
+writeat :: Pos -> String -> IO ()
+writeat p xs = do goto p
+                  putStr xs
+
+goto :: Pos -> IO ()
+goto (x,y) = putStr ("\ESC[" ++ show y ++ ";" ++ show x ++ "H")
+
+-- Chapter 13.3
 
 newtype Parser a = P (String -> [(a,String)])
 
@@ -133,6 +159,7 @@ nats = do symbol "["
           return (n:ns)
 
 -- Chapter 13.8
+{-
 expr :: Parser Int
 expr = do t <- term
           do symbol "+"
@@ -159,39 +186,102 @@ eval xs = case (parse expr xs) of
              [(n,[])]  -> n
              [(_,out)] -> error ("Unused input " ++ out)
              []        -> error "Invalid input"
+-}
 
--- Excercise 6
--- Changed
---   expr ::= term ( + expr | - expr | ϵ)
---   term ::= factor ( * term | / term | ϵ)
--- ==>
---   expr ::= term ( + term | - term )*
---   term ::= factor ( * factor | / factor )*
+-- Chapter 13.9
+box :: [String]
+box = ["+---------------+",
+       "|               |",
+       "+---+---+---+---+",
+       "| q | c | d | = |",
+       "+---+---+---+---+",
+       "| 1 | 2 | 3 | + |",
+       "+---+---+---+---+",
+       "| 4 | 5 | 6 | - |",
+       "+---+---+---+---+",
+       "| 7 | 8 | 9 | * |",
+       "+---+---+---+---+",
+       "| 0 | ( | ) | / |",
+       "+---+---+---+---+"]
+
+buttons :: [Char]
+buttons = standard ++ extra
+          where
+            standard = "qcd=123+456-789*0()/"
+            extra    = "QCD \ESC\BS\DEL\n"
+
+showbox :: IO ()
+showbox = sequence_ [ writeat (1,y) xs | (y,xs) <- zip [1..] box]
+
+display :: String -> IO ()
+display xs = do writeat (3,2) (replicate 13 ' ')
+                writeat (3,2) (reverse ( take 13 (reverse xs)))
+
+beep = putStr "\BEL"
+
+calc :: String -> IO ()
+calc xs = do display xs
+             c <- getChar
+             if elem c buttons then
+                  process c xs
+                else
+                  do beep
+                     calc xs
+
+process :: Char -> String -> IO ()
+process c xs
+  | elem c "qQ\ESC"      = quit
+  | elem c "dD\BS\DEL"   = delete xs
+  | elem c "=\n"         = eval xs
+  | elem c "cC"          = clear
+  | otherwise            = press c xs
+
+quit :: IO ()
+quit = goto (1, 14)
+
+delete :: String -> IO ()
+delete "" = calc ""
+delete xs = calc (init xs)
+
+eval :: String -> IO ()
+eval xs = case parse expr' xs of
+            [(n, "")] -> calc (show n)
+            _ -> do beep
+                    calc xs
+
+clear :: IO ()
+clear = calc ""
+
+press :: Char -> String -> IO ()
+press c xs = calc (xs ++ [c])
+
+run = do
+     cls
+     showbox
+     clear
+
+-- Excercise 8
 expr' :: Parser Int
-expr' = do t1 <- term'
-           rest t1
-    where
-      rest t1 =
-           do symbol "+"
-              t2 <- term' 
-              rest (t1 + t2)
-            <|> do symbol "-"
-                   t2 <- term' 
-                   rest (t1 - t2)
-            <|> return t1
+expr' = do t1  <- term'
+           t2s <- many 
+              $ do symbol "+"
+                   t2 <- term'
+                   return ( + t2)
+                 <|> do symbol "-"
+                        t2 <- term'
+                        return ( subtract t2)
+           return (foldl (\x f -> f x) t1 t2s)
 
 term' :: Parser Int
-term' = do f1 <- factor'
-           rest f1
-    where
-      rest f1 =
-           do symbol "*"
-              f2 <- factor'
-              rest (f1 * f2)
-            <|> do symbol "/"
+term' = do f1  <- factor'
+           f2s <- many
+              $ do symbol "*"
                    f2 <- factor'
-                   rest (f1 `div` f2)
-            <|> return f1
+                   return ( * f2)
+                 <|> do symbol "/"
+                        t2 <- term'
+                        return ( `div` t2)
+           return (foldl (\x f -> f x)  f1 f2s)
 
 factor' :: Parser Int
 factor' = do symbol "("
@@ -200,23 +290,6 @@ factor' = do symbol "("
              return e
            <|> integer
 
-eval' :: String -> Int
-eval' xs = case (parse expr' xs) of
-              [(n,[])]  -> n
-              [(_,out)] -> error ("Unused input " ++ out)
-              []        -> error "Invalid input"
-
--- Chapter 13.9
 main = do
-    print $ eval' "1"
-    print $ eval' "-2"
-    print $ eval' "1+10+100"
-    print $ eval' "1-10-100"
-    print $ eval' "1-10+100"
-    print $ eval' "1+10+100+1000"
-    print $ eval' "1000*100*10"
-    print $ eval' "1000*100/10"
-    print $ eval' "1000/100/10"
-    print $ eval' "1000/100*10"
-    print $ eval' "100+5*2*3-10" -- 120
-    print $ eval' "100+5*2*(3-10)" -- 30
+     hSetBuffering stdout NoBuffering
+     run

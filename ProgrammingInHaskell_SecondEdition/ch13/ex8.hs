@@ -216,3 +216,4 @@ main = do
     print $ eval' "1000/100*10"
     print $ eval' "100+5*2*3-10" -- 120
     print $ eval' "100+5*2*(3-10)" -- 30
+    print $ eval' "2*3" -- 6
