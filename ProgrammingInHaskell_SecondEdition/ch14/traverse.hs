@@ -12,11 +12,6 @@ menus "Matsuya" = [(380,"Regular Premium Gyumeshi"), (490,"Regular Matsuya Tende
 menus _ = []
 
 main = do
-     print $ (traverse (\x -> menus x) ["Ippudo","Matsuya"])
-     print $ (traverse (\x -> menus x) ["Ippudo","Matsuya","xxx"]) -- []
-     print $ (traverse (\x -> menus x) (Just "Ippudo"))
-     print $ (traverse (\x -> menus x) (Just "xxx")) -- []
-
      putStrLn $ id "== Applicative"
      -- class Functor f => Applicative f where
      --    pure :: a -> f a
@@ -47,7 +42,13 @@ main = do
      --    traverse :: Applicative f => (a -> f b) -> [a] -> f [b]
      --    traverse g [] = pure []
      --    traverse g (x:xs) = pure (:) <*> g x <*> traverse g xs`
+     --
      print $ traverse id [[1,2,3],[4,5]]
      print $ traverse id ([1,2,3],[4,5])
      print $ traverse (\x -> [1..x])  [1,2,3]
      -- print $ traverse id ((1,2,3),(4,5,6)) -- error
+     print $ (traverse (\x -> menus x) ["Ippudo","Matsuya"])
+     print $ (traverse (\x -> menus x) ["Ippudo","Matsuya","xxx"]) -- []
+     print $ (traverse (\x -> menus x) (Just "Ippudo"))
+     print $ (traverse (\x -> menus x) (Just "xxx")) -- []
+
