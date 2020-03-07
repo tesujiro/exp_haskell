@@ -4,38 +4,17 @@ import Data.Function
 type Cell = (Int, Int)
 type Board = [(Cell, Int)]
 
--- solve' :: Board -> Board
-solve' :: Board -> [Board]
-solve' board = do
-           let remains = cells \\ map fst board
-           -- let cell = maximumBy (compare `on` length . used board) remains
-           cell    <- (maximumBy (compare `on` length . used board) remains) :: Cell
-           n       <- [1..9] \\ used board cell
-           return (cell, n)
+fillNumber :: Board -> [Board]
+fillNumber board = do
+                let remains = cells \\ map fst board
+                let cell = maximumBy (compare `on` length . used board) remains
+                n <- [1..9] \\ used board cell
+                return ((cell, n) : board)
 
 solve :: Board -> [Board]
 solve board | length board == 81 = [board]
-            -- | otherwise          = [solve' board] >>= solve
-            -- | otherwise          = do { x <- solve' board; return (solve x) }
-{-
-solve board = do
-         b <- solve' board
-         solve b
--}
-solve board = do
-         x <- [ (cell, n) : board
-              | let remains = cells \\ map fst board
-              , let cell = maximumBy (compare `on` length . used board) remains
-              , n <- [1..9] \\ used board cell
-              ]
-         solve x
-{-
-solve board = [ (cell, n) : board
-              | let remains = cells \\ map fst board
-              , let cell = maximumBy (compare `on` length . used board) remains
-              , n <- [1..9] \\ used board cell
-              ] >>= solve
--}
+            | otherwise          = do b <- fillNumber board
+                                      solve b
 
 cells :: [Cell]
 cells = [ (x, y) | x <- [0..8], y <- [0..8] ]
@@ -53,6 +32,8 @@ main :: IO ()
 main = case solve problem of
          answer : _ -> mapM_ print $ format answer
          []         -> putStrLn "invalid problem"
+
+-- main = print $ fillNumber problem
 
 format :: Board -> [[Int]]
 format = map (map snd) . transpose .groupBy ((==) `on` (fst . fst)) . sort
