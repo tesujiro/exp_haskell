@@ -34,6 +34,10 @@ main = case solve problem of
          []         -> putStrLn "invalid problem"
 
 -- main = print $ fillNumber problem
+-- main = print $ length (solve problem)
+-- main = do
+--     let answer = solve problem
+--     print length answer
 
 format :: Board -> [[Int]]
 format = map (map snd) . transpose .groupBy ((==) `on` (fst . fst)) . sort
